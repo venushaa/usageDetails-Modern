@@ -1,0 +1,2210 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "usage-modern-df"
+        },
+        "AzureSqlDatabase1_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+        },
+        "AzureBlobStorage1_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+        },
+        "HttpServer1_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "@activity('Set Blobpath').value"
+        },
+        "trigger1UsageDetails_properties_pipeline_usageData_end2end_parameters_startDate": {
+            "type": "string",
+            "defaultValue": "2019-11-10"
+        },
+        "trigger1UsageDetails_properties_pipeline_usageData_end2end_parameters_endDate": {
+            "type": "string",
+            "defaultValue": "2019-11-10"
+        },
+        "trigger2UsageDetails_properties_pipelineBegin_parameters_startDate1": {
+            "type": "string",
+            "defaultValue": "12/1/2019"
+        },
+        "trigger2UsageDetails_properties_pipelineBegin_parameters_endDate1": {
+            "type": "string",
+            "defaultValue": "12/1/2019"
+        },
+        "trigger2UsageDetails_properties_pipelineBegin_parameters_interval": {
+            "type": "int",
+            "defaultValue": 4
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/HttpServer1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "\n\n",
+                "annotations": [],
+                "type": "HttpServer",
+                "typeProperties": {
+                    "url": "[parameters('HttpServer1_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CSVSource')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "HttpServer1",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "HttpServerLocation"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\",\"",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/HttpServer1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureSqlDatabase1",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "startDate": {
+                        "type": "string",
+                        "defaultValue": "2019-11-01"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "defaultValue": "2019-11-01"
+                    }
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "BillingAccountId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingAccountName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingPeriodStartDate",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingPeriodEndDate",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingProfileId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingProfileName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "AccountOwnerId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "AccountName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "SubscriptionId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "SubscriptionName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Product",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PartNumber",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MeterId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ServiceFamily",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MeterCategory",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MeterSubCategory",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MeterRegion",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MeterName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Quantity",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "EffectivePrice",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Cost",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "UnitPrice",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "BillingCurrency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ResourceLocation",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "AvailabilityZone",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ConsumedService",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ResourceId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ResourceName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ServiceInfo1",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ServiceInfo2",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "AdditionalInfo",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Tags",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "InvoiceSectionId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "InvoiceSection",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "CostCenter",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "UnitOfMeasure",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ResourceGroup",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ReservationId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ReservationName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ProductOrderId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ProductOrderName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "OfferId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "IsAzureCreditEligible",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Term",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PublisherName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PlanName",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ChargeType",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Frequency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PublisherType",
+                        "type": "nvarchar"
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": {
+                        "value": "@concat('usageDetailsStaging',dataset().startDate,dataset().endDate)",
+                        "type": "Expression"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/BlobStorageForCSVFile')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorage1",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "startDate1": {
+                        "type": "string",
+                        "defaultValue": "pipeline().paramaters.startDate"
+                    },
+                    "endDate1": {
+                        "type": "string",
+                        "defaultValue": "pipeline().paramaters.endDate"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@Concat('usageDetails', dataset().startDate1, dataset().endDate1,'.csv')",
+                            "type": "Expression"
+                        },
+                        "container": "usagedetailscontainer"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\",\"",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CSVFiletoTable')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorage1",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "startDate2": {
+                        "type": "string",
+                        "defaultValue": "pipeline().paramaters.startDate"
+                    },
+                    "endDate2": {
+                        "type": "string",
+                        "defaultValue": "pipeline().paramaters.endDate"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@concat('usageDetails', dataset().startDate2, dataset().endDate2,'.csv')",
+                            "type": "Expression"
+                        },
+                        "container": "usagedetailscontainer"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\",\"",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "BillingAccountId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingAccountName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingPeriodStartDate",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingPeriodEndDate",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingProfileId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingProfileName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "AccountOwnerId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "AccountName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SubscriptionId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SubscriptionName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Product",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PartNumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MeterId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ServiceFamily",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MeterCategory",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MeterSubCategory",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MeterRegion",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MeterName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Quantity",
+                        "type": "String"
+                    },
+                    {
+                        "name": "EffectivePrice",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Cost",
+                        "type": "String"
+                    },
+                    {
+                        "name": "UnitPrice",
+                        "type": "String"
+                    },
+                    {
+                        "name": "BillingCurrency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ResourceLocation",
+                        "type": "String"
+                    },
+                    {
+                        "name": "AvailabilityZone",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ConsumedService",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ResourceId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ResourceName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ServiceInfo1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ServiceInfo2",
+                        "type": "String"
+                    },
+                    {
+                        "name": "AdditionalInfo",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Tags",
+                        "type": "String"
+                    },
+                    {
+                        "name": "InvoiceSectionId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "InvoiceSection",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CostCenter",
+                        "type": "String"
+                    },
+                    {
+                        "name": "UnitOfMeasure",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ResourceGroup",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ReservationId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ReservationName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ProductOrderId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ProductOrderName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "OfferId",
+                        "type": "String"
+                    },
+                    {
+                        "name": "IsAzureCreditEligible",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Term",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PublisherName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PlanName",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ChargeType",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Frequency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PublisherType",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureSqlTable_lookup')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureSqlDatabase1",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "startDate",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "endDate",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "lookupDates"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pipelinedb')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Stored Procedure1",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[dbo].[loadUsageDataToFinalTbl]",
+                            "storedProcedureParameters": {
+                                "endDate": {
+                                    "value": "",
+                                    "type": "String"
+                                },
+                                "stagetblname": {
+                                    "value": {
+                                        "value": "@concat('usageDetailsStaging',pipeline().parameters.startDate,pipeline().parameters.endDate)",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "startDate": {
+                                    "value": "",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "AzureSqlDatabase1",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "parameters": {
+                    "startDate": {
+                        "type": "string"
+                    },
+                    "endDate": {
+                        "type": "string"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pipeline_usageData_end2end')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "URLforAPI",
+                        "type": "WebActivity",
+                        "dependsOn": [
+                            {
+                                "activity": "SetURL",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@activity('SetURL').value",
+                                "type": "Expression"
+                            },
+                            "method": "GET",
+                            "headers": {
+                                "Authorization": {
+                                    "value": "@concat('Bearer ', pipeline().parameters.AuthKey)",
+                                    "type": "Expression"
+                                }
+                            },
+                            "body": {}
+                        }
+                    },
+                    {
+                        "name": "Copy data from csv to blob",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "Set Blobpath",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 2,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "HttpReadSettings",
+                                    "requestMethod": "GET",
+                                    "requestTimeout": "10.23:55:55"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".csv"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "BillingAccountId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingAccountId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingAccountName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingAccountName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingPeriodStartDate",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingPeriodStartDate",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingPeriodEndDate",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingPeriodEndDate",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingProfileId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingProfileId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingProfileName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingProfileName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AccountOwnerId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AccountOwnerId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AccountName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AccountName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "SubscriptionId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "SubscriptionId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "SubscriptionName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "SubscriptionName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Date",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Date",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Product",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Product",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PartNumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PartNumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceFamily",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceFamily",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterCategory",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterCategory",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterSubCategory",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterSubCategory",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterRegion",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterRegion",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Quantity",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Quantity",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "EffectivePrice",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "EffectivePrice",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Cost",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Cost",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "UnitPrice",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "UnitPrice",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingCurrency",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingCurrency",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceLocation",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceLocation",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AvailabilityZone",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AvailabilityZone",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ConsumedService",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ConsumedService",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceInfo1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceInfo1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceInfo2",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceInfo2",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AdditionalInfo",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AdditionalInfo",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Tags",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Tags",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "InvoiceSectionId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "InvoiceSectionId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "InvoiceSection",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "InvoiceSection",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CostCenter",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "CostCenter",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "UnitOfMeasure",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "UnitOfMeasure",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceGroup",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceGroup",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ReservationId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ReservationId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ReservationName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ReservationName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ProductOrderId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ProductOrderId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ProductOrderName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ProductOrderName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "OfferId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "OfferId",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "IsAzureCreditEligible",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "IsAzureCreditEligible",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Term",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Term",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PublisherName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PublisherName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PlanName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PlanName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ChargeType",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ChargeType",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Frequency",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Frequency",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PublisherType",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PublisherType",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CSVSource",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "BlobStorageForCSVFile",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "startDate1": {
+                                        "value": "@pipeline().parameters.startDate",
+                                        "type": "Expression"
+                                    },
+                                    "endDate1": {
+                                        "value": "@pipeline().parameters.endDate",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Set Blobpath",
+                        "type": "SetVariable",
+                        "dependsOn": [
+                            {
+                                "activity": "URLforAPI",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "variableName": "url",
+                            "value": {
+                                "value": "@activity('URLforAPI').output.properties.downloadUrl",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Copy data from blob to DB",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy data from csv to blob",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 2,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [
+                            {
+                                "name": "startDate2",
+                                "value": "pipeline().paramaters.startDate"
+                            },
+                            {
+                                "name": "endDate2",
+                                "value": "pipeline().paramaters.endDate"
+                            }
+                        ],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "AzureSqlSink",
+                                "tableOption": "autoCreate",
+                                "disableMetricsCollection": true
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "BillingAccountId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingAccountId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingAccountName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingAccountName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingPeriodStartDate",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingPeriodStartDate"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingPeriodEndDate",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingPeriodEndDate"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingProfileId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingProfileId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingProfileName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingProfileName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AccountOwnerId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AccountOwnerId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AccountName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AccountName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "SubscriptionId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "SubscriptionId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "SubscriptionName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "SubscriptionName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Date",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Date"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Product",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Product"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PartNumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PartNumber"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceFamily",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceFamily"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterCategory",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterCategory"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterSubCategory",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterSubCategory"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterRegion",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterRegion"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "MeterName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "MeterName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Quantity",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Quantity"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "EffectivePrice",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "EffectivePrice"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Cost",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Cost"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "UnitPrice",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "UnitPrice"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BillingCurrency",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BillingCurrency"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceLocation",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceLocation"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AvailabilityZone",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AvailabilityZone"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ConsumedService",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ConsumedService"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceInfo1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceInfo1"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ServiceInfo2",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ServiceInfo2"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AdditionalInfo",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AdditionalInfo"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Tags",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Tags"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "InvoiceSectionId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "InvoiceSectionId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "InvoiceSection",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "InvoiceSection"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CostCenter",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "CostCenter"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "UnitOfMeasure",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "UnitOfMeasure"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ResourceGroup",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ResourceGroup"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ReservationId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ReservationId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ReservationName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ReservationName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ProductOrderId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ProductOrderId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ProductOrderName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ProductOrderName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "OfferId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "OfferId"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "IsAzureCreditEligible",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "IsAzureCreditEligible"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Term",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Term"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PublisherName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PublisherName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PlanName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PlanName"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ChargeType",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ChargeType"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Frequency",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Frequency"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PublisherType",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PublisherType"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CSVFiletoTable",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "startDate2": {
+                                        "value": "@pipeline().parameters.startDate",
+                                        "type": "Expression"
+                                    },
+                                    "endDate2": {
+                                        "value": "@pipeline().parameters.endDate",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AzureSqlTable1",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "startDate": {
+                                        "value": "@pipeline().parameters.startDate",
+                                        "type": "Expression"
+                                    },
+                                    "endDate": {
+                                        "value": "@pipeline().parameters.endDate",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "SetURL",
+                        "type": "SetVariable",
+                        "dependsOn": [],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "variableName": "url",
+                            "value": {
+                                "value": "@Concat('https://management.azure.com/providers/Microsoft.Billing/BillingAccounts/', variables('enrollmentNumber'), '/providers/Microsoft.Consumption/usageDetails/Download?api-version=2019-10-01&$filter=properties/usageStart=', pipeline().parameters.startDate, ' AND properties/usageEnd=',pipeline().parameters.endDate)",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Execute Pipeline1",
+                        "type": "ExecutePipeline",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy data from blob to DB",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "pipeline": {
+                                "referenceName": "pipelinedb",
+                                "type": "PipelineReference"
+                            },
+                            "waitOnCompletion": false,
+                            "parameters": {
+                                "startDate": {
+                                    "value": "@pipeline().parameters.startDate",
+                                    "type": "Expression"
+                                },
+                                "endDate": {
+                                    "value": "@pipeline().parameters.endDate",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "parameters": {
+                    "startDate": {
+                        "type": "string",
+                        "defaultValue": "2019-11-01"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "defaultValue": "2019-11-05"
+                    },
+                    "AuthKey": {
+                        "type": "string"
+                    }
+                },
+                "variables": {
+                    "url": {
+                        "type": "String",
+                        "defaultValue": "''"
+                    },
+                    "startDatevar": {
+                        "type": "String",
+                        "defaultValue": "''"
+                    },
+                    "endDatevar": {
+                        "type": "String",
+                        "defaultValue": "''"
+                    },
+                    "enrollmentNumber": {
+                        "type": "String",
+                        "defaultValue": "8608480"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/CSVSource')]",
+                "[concat(variables('factoryId'), '/datasets/BlobStorageForCSVFile')]",
+                "[concat(variables('factoryId'), '/datasets/CSVFiletoTable')]",
+                "[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
+                "[concat(variables('factoryId'), '/pipelines/pipelinedb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/trigger1UsageDetails')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pipeline_usageData_end2end",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {
+                            "startDate": "[parameters('trigger1UsageDetails_properties_pipeline_usageData_end2end_parameters_startDate')]",
+                            "endDate": "[parameters('trigger1UsageDetails_properties_pipeline_usageData_end2end_parameters_endDate')]"
+                        }
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Hour",
+                        "interval": 6,
+                        "startTime": "2019-12-06T00:55:00Z",
+                        "timeZone": "UTC"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pipeline_usageData_end2end')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pipelineBegin')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "LookupDates",
+                        "type": "Lookup",
+                        "dependsOn": [
+                            {
+                                "activity": "Stored Procedure2",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 2,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "AzureSqlSource",
+                                "queryTimeout": "02:00:00"
+                            },
+                            "dataset": {
+                                "referenceName": "AzureSqlTable_lookup",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEach2",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "LookupDates",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('LookupDates').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "Execute Pipeline2",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Wait1",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pipeline_usageData_end2end",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": false,
+                                        "parameters": {
+                                            "startDate": {
+                                                "value": "@item().startDate",
+                                                "type": "Expression"
+                                            },
+                                            "endDate": {
+                                                "value": "@item().endDate",
+                                                "type": "Expression"
+                                            },
+                                            "AuthKey": {
+                                                "value": "@pipeline().parameters.AuthKey",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "Wait1",
+                                    "type": "Wait",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "waitTimeInSeconds": 15
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "Stored Procedure2",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[dbo].[lookupDatesSP]",
+                            "storedProcedureParameters": {
+                                "endDate": {
+                                    "value": {
+                                        "value": "@pipeline().parameters.endDate1",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "interval": {
+                                    "value": {
+                                        "value": "@pipeline().parameters.interval",
+                                        "type": "Expression"
+                                    },
+                                    "type": "Int32"
+                                },
+                                "startDate": {
+                                    "value": {
+                                        "value": "@pipeline().parameters.startDate1",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "AzureSqlDatabase1",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "parameters": {
+                    "startDate1": {
+                        "type": "string"
+                    },
+                    "endDate1": {
+                        "type": "string"
+                    },
+                    "interval": {
+                        "type": "int"
+                    },
+                    "AuthKey": {
+                        "type": "string"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureSqlTable_lookup')]",
+                "[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]",
+                "[concat(variables('factoryId'), '/pipelines/pipeline_usageData_end2end')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/trigger2UsageDetails')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pipelineBegin",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {
+                            "startDate1": "[parameters('trigger2UsageDetails_properties_pipelineBegin_parameters_startDate1')]",
+                            "endDate1": "[parameters('trigger2UsageDetails_properties_pipelineBegin_parameters_endDate1')]",
+                            "interval": "[parameters('trigger2UsageDetails_properties_pipelineBegin_parameters_interval')]"
+                        }
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Hour",
+                        "interval": 6,
+                        "startTime": "2019-12-17T00:45:00Z",
+                        "timeZone": "UTC"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pipelineBegin')]"
+            ]
+        }
+    ]
+}
